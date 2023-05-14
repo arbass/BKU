@@ -2,12 +2,11 @@
 
 const loadMoreButton = document.querySelector('.is-load-more')
 
-//tag, tag, tag, +5
+//tag, tag, tag, +12
 //use '[ak_tagWrapper]' only in nest-source lists
 //use '[ak_tagItem]' only in nest-source list's item
 function checkLimitTags() {
-	//12
-	const tagCount_maximum = 3
+	const tagCount_maximum = 12
 	let all_tagsWrappers = document.querySelectorAll(
 		'[fs-cmsfilter-element="list"] [ak_tagWrapper]'
 	)
@@ -74,7 +73,7 @@ function startChecked() {
 		let allCurrentRadios = clw.querySelectorAll(
 			'.cl-i_nav_link-dropdown-list-text'
 		)
-		allCurrentRadios[0].click()
+		// allCurrentRadios[0].click()
 	})
 }
 
