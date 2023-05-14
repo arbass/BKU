@@ -1,6 +1,10 @@
 'use strict'
 
 const loadMoreButton = document.querySelector('.is-load-more')
+const allFilterDropdowns = document.querySelectorAll('.filter-dropdown')
+const inputFilter = document.querySelector(
+	'.network-list-form_dropdown.is-input'
+)
 
 //tag, tag, tag, +12
 //use '[ak_tagWrapper]' only in nest-source lists
@@ -42,27 +46,22 @@ function displayCurrentRadio() {
 	})
 }
 
-const observer = new MutationObserver(mutationsList => {
-	setTimeout(checkLimitTags, 300)
-	for (const mutation of mutationsList) {
-		if (
-			mutation.target.classList.contains('filter-dropdown') ||
-			mutation.target.closest('.filter-dropdown')
-		) {
-			displayCurrentRadio()
-		}
-	}
+allFilterDropdowns.forEach(dropdown => {
+	dropdown.addEventListener('click', function () {
+		setTimeout(displayCurrentRadio, 100)
+		setTimeout(checkLimitTags, 100)
+	})
 })
 
-const targetNode = document.body
+displayCurrentRadio()
 
-const config = {
-	attributes: true,
-	childList: true,
-	subtree: true,
-}
+inputFilter.addEventListener('input', function () {
+	setTimeout(checkLimitTags, 200)
+})
 
-observer.observe(targetNode, config)
+inputFilter.addEventListener('change', function () {
+	setTimeout(checkLimitTags, 200)
+})
 
 function startChecked() {
 	let allFirstRadiosClw = document.querySelectorAll(
