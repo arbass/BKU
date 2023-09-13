@@ -1,0 +1,421 @@
+var chart;
+var options_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/options?scope=eod";
+var series = [{"route":"https://polaris.brighterir.com/public/boku/chart/share_price_chart/data/186?scope=eod&intraday_data=intraday_prices","data_type":"price","display_group":"price"}];
+var min = 1680809226000;
+var max = 1688671626000;
+var timezone = "Europe/London";
+
+$(function () {
+
+    Highcharts.setOptions({
+        lang : {
+            noData : ''
+        },
+        global: {
+            getTimezoneOffset: function (timestamp) {
+                timezoneOffset = -moment.tz(timestamp, timezone).utcOffset();
+
+                return timezoneOffset;
+            }
+        }
+    });
+
+    $.getJSON(options_route, function (options) {
+        chart = new Highcharts.StockChart(options);
+        chart.showLoading();
+        get_series_data();
+    });
+
+});
+
+function get_series_data() {
+    $.each(series, function(key,series_data) {
+
+        $.getJSON(series_data.route, {'data_type': series_data.data_type}).done(function (data) {
+            chart.series[key].setData(data);
+            chart.xAxis[0].setExtremes(min,max);
+            chart.hideLoading();
+        });
+
+    })
+}
+$(document).ready(function() {
+    $.each(series, function(key,series_data){
+
+        var series_div = $('#series_'+key);
+
+        series_div.find('.series_checkbox').click(function(){
+            var selected_series = chart.series[key];
+
+            if (selected_series.visible) {
+                selected_series.hide();
+            } else {
+                selected_series.show();
+            }
+        });
+
+        series_div.find('.series_select').change(function(){
+            chart.showLoading();
+
+            var selected_series = chart.series[key];
+            var selected_type = $('option:selected', this);
+
+            $.getJSON(series_data.route, {'data_type':selected_type.data('type')}).done(function (data) {
+                selected_series.update({
+                    data: data,
+                    type: selected_type.val()
+                });
+                chart.hideLoading();
+            });
+
+        });
+
+    });
+});
+                                                                                                                                         var high_52w_marker_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/marker/high_52w";
+var low_52w_marker_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/marker/low_52w";
+var intraday_high_marker_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/marker/intraday_high";
+var intraday_low_marker_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/marker/intraday_low";
+
+$('#52w_high_toggle').click(function(){
+    if ($(this).is(":checked")){
+        $.getJSON(high_52w_marker_route).done(function (data) {
+            chart.yAxis[0].addPlotLine(data);
+        });
+    }
+    else {
+        chart.yAxis[0].removePlotLine('high_52w')
+    }
+});
+
+$('#52w_low_toggle').click(function(){
+    if ($(this).is(":checked")){
+        $.getJSON(low_52w_marker_route).done(function (data) {
+            chart.yAxis[0].addPlotLine(data);
+        });
+    }
+    else {
+        chart.yAxis[0].removePlotLine('low_52w')
+    }
+});
+
+$('#intraday_high_toggle').click(function(){
+    if ($(this).is(":checked")){
+        $.getJSON(intraday_high_marker_route).done(function (data) {
+            chart.yAxis[0].addPlotLine(data);
+        });
+    }
+    else {
+        chart.yAxis[0].removePlotLine('intraday_high')
+    }
+});
+
+$('#intraday_low_toggle').click(function(){
+    if ($(this).is(":checked")){
+        $.getJSON(intraday_low_marker_route).done(function (data) {
+            chart.yAxis[0].addPlotLine(data);
+        });
+    }
+    else {
+        chart.yAxis[0].removePlotLine('intraday_low')
+    }
+});                                                                                              var news_overlays = [{"key":1,"route":"https://polaris.brighterir.com/public/boku/chart/share_price_chart/news/186"}];
+
+$('#regulatory_news_toggle').click(function(){
+    chart.showLoading();
+
+    if ($(this).is(":checked")){
+        $.each(news_overlays, function(index, news_overlay){
+            $.getJSON(news_overlay.route).done(function (data) {
+                chart.series[news_overlay.key].setData(data);
+            });
+            chart.series[news_overlay.key].show();
+        });
+    }
+    else {
+        $.each(news_overlays, function(index, news_overlay){
+            chart.series[news_overlay.key].hide();
+        });
+    }
+
+    chart.hideLoading();
+});                                              var first_day = "2017-11-20 00:00:00";
+var scope = "eod";
+var intraday_data = "intraday_prices";
+var chart_route = location.href.split('?')[0];
+
+function eod_switch(start)
+{
+    if (scope == 'intraday')
+    {
+        var query = $.param({
+            'scope': 'eod',
+            'intraday_data': intraday_data,
+            'start' : start.format('DD-MM-YYYY'),
+            'end' : moment().format('DD-MM-YYYY')
+        });
+
+        window.location=chart_route+'?'+query;
+    }
+    else
+    {
+        chart.xAxis[0].setExtremes(start.toDate(), moment().toDate())
+    }
+}
+
+function date_bar()
+{
+    if ($('.one_day_button').length)
+    {
+        $('.one_day_button').click(function(){
+            var query = $.param({
+                'scope': 'intraday',
+                'intraday_data': intraday_data
+            });
+
+            window.location=chart_route+'?'+query;
+        });
+    }
+
+    $('.one_week_button').click(function(){
+        eod_switch(moment().subtract(1, 'week'));
+    });
+
+    $('.one_month_button').click(function(){
+        eod_switch(moment().subtract(1, 'month'));
+    });
+
+    $('.three_months_button').click(function(){
+        eod_switch(moment().subtract(3, 'months'));
+    });
+
+    $('.six_months_button').click(function(){
+        eod_switch(moment().subtract(6, 'months'));
+    });
+
+    $('.one_year_button').click(function(){
+        eod_switch(moment().subtract(1, 'year'));
+    });
+
+    $('.all_button').click(function(){
+        eod_switch(moment(first_day));
+    });
+}
+
+$( document ).ready(function(){
+    date_bar()
+});                                                                                                                                                                                  var default_range_start = "2023-04-06T20:27:06+01:00";
+
+var from_day = moment("2017-11-20 00:00:00");
+var to_day = moment();
+
+var share_price_chart_from_select = $('#date_combo_share_price_chart_from_select');
+var share_price_chart_to_select = $('#date_combo_share_price_chart_to_select');
+
+function months(key, year)
+{
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var keyed = [];
+    var month_key = 0;
+
+    for (var i = 0, len = months.length; i < len; i++) {
+        var month_value = moment(months[i] + ' ' + year, "MMMM YYYY").valueOf();
+        var start_value = moment(months[i] + ' ' + year, "MMMM YYYY").startOf('month').valueOf();
+        var end_value = moment(months[i] + ' ' + year, "MMMM YYYY").endOf('month').valueOf();
+
+        if ((from_day.startOf('month').valueOf() <= month_value) && (month_value <= to_day.endOf('month').valueOf()))
+        {
+            keyed[month_key] = {
+                name : months[i],
+                key : key,
+                value : start_value,
+                end_value : end_value
+            };
+
+            key++;
+            month_key++;
+        }
+    }
+
+    return keyed;
+}
+
+function populate_options()
+{
+    var years_months = {};
+    var month_key = 0;
+    var from = from_day.clone().startOf('year');
+    var to = to_day.clone().endOf('year');
+
+    do
+    {
+        var year = from.format('YYYY');
+        years_months[year] = months(month_key, year);
+        from.add(1,'year');
+        month_key += 12;
+    }
+    while (to.valueOf() >= from.valueOf())
+
+    $.each(years_months, function(year, month_group){
+        var group = $('<optgroup label="' + year + '" data-year="' + year + '" />');
+
+        $.each(month_group, function(key, month){
+            var option = $('<option />');
+            option.html(month.name + ' ' + year);
+            option.val(month.value);
+            option.attr('data-end-value', month.end_value);
+            option.attr('data-key', month.key);
+            option.attr('data-year', year);
+
+            option.appendTo(group);
+        });
+
+        group.appendTo([share_price_chart_from_select, share_price_chart_to_select]);
+    });
+}
+populate_options();
+
+function hide_options(dropdown, data_key)
+{
+    dropdown.find("option").each(function(){
+        if (Number(data_key) >= Number($(this).attr('data-key')))
+        {
+            $(this).hide();
+        }
+        else
+        {
+            $(this).show();
+        }
+    });
+}
+
+function select_option()
+{
+    var from = moment(default_range_start).startOf('month').valueOf();
+    var to = to_day.startOf('month').valueOf();
+
+    var find_from = share_price_chart_from_select.find('option[value="'+from+'"]').val();
+
+    if (typeof find_from !== "undefined")
+    {
+        share_price_chart_from_select.val(from);
+    }
+
+    var to_selected = share_price_chart_to_select.val(to);
+
+    hide_options(share_price_chart_to_select, $('option[value='+from+']').attr("data-key"));
+}
+
+$( document ).ready(function(){
+
+    select_option();
+
+    share_price_chart_from_select.change(function(){
+        var start_value = $(this).find(':selected').val();
+        var end_value = share_price_chart_to_select.find(':selected').attr('data-end-value');
+        var data_key = $(this).find(':selected').attr('data-key');
+
+        chart.xAxis[0].setExtremes(parseInt(start_value), parseInt(end_value));
+
+        share_price_chart_to_select.find("option").each(function(){
+            if (Number(data_key) > Number($(this).attr('data-key')))
+            {
+                $(this).hide();
+            }
+            else
+            {
+                $(this).show();
+            }
+        });
+    });
+
+    share_price_chart_to_select.change(function(){
+        var start_value = share_price_chart_from_select.find(':selected').val();
+        var end_value = $(this).find(':selected').attr('data-end-value');
+        var data_key = $(this).find(':selected').attr('data-key');
+
+        chart.xAxis[0].setExtremes(parseInt(start_value), parseInt(end_value));
+
+        share_price_chart_from_select.find("option").each(function(){
+            if (Number(data_key) < Number($(this).attr('data-key')))
+            {
+                $(this).hide();
+            }
+            else
+            {
+                $(this).show();
+            }
+        });
+    });
+});                                                                                                      function do_export(format){
+    switch(format){
+        case 'pdf':
+            chart.exportChart({
+                "type" : "application/pdf",
+                "sourceHeight": "400",
+                "sourceWidth": "800",
+                "url" : "https://export.highcharts.com"
+            },{
+                "chart": {
+                    "backgroundColor" : "#ffffff"
+                }
+            });
+            break;
+        case 'png':
+            chart.exportChart({
+                "type" : "image/png",
+                "url" : "https://export.highcharts.com"
+            });
+            break;
+        case 'jpg':
+            chart.exportChart({
+                "type" : "image/jpeg",
+                "url" : "https://export.highcharts.com"
+            },{
+                "chart": {
+                    "backgroundColor" : "#ffffff"
+                }
+            });
+            break;
+        case 'xls':
+            export_spreadsheet('xls');
+            break;
+        case 'csv':
+            export_spreadsheet('csv');
+            break;
+        case 'print':
+            chart.print();
+            break;
+    }
+}
+
+function export_spreadsheet(format)
+{
+    var export_route = "https://polaris.brighterir.com/public/boku/chart/share_price_chart/export";
+    var extremes = chart.xAxis[0].getExtremes();
+    var scope = "eod";
+    var intraday_data = "intraday_prices";
+
+    var query = $.param({
+        'format': format,
+        'start': moment(extremes.min).format('YYYY-MM-DD'),
+        'end': moment(extremes.max).format('YYYY-MM-DD'),
+        'scope': scope,
+        'intraday_data': intraday_data
+    });
+
+    window.location=export_route+'?'+query;
+}
+
+$("#export-submit").click(function(){
+    var format = $("#export option:selected").val();
+    do_export(format);
+});                                                                                                                              $(".chart_tool_reset").click(function(){
+    window.location=location.href.split('?')[0];
+});     
+var domain_stage = 'http://boku.irstaging.com/';
+var domain_live = 'http://www.boku.com/';
+
+setInterval(function() {
+   window.top.postMessage(document.body.scrollHeight, "*");
+}, 500);
